@@ -406,7 +406,7 @@ namespace GPT2GH
                 client.DefaultRequestHeaders.Add("Authorization", "Bearer " + apiKey);
                 var payload = new
                 {
-                    model = "gpt-3.5-turbo", // or "gpt-4"
+                    model = "gpt-4", // or "gpt-4"
                     messages = new[] {
                         new { role = "system", content = "You are a helpful assistant specialized in Grasshopper geometry generation. The user will provide a natural language command to generate a model in Grasshopper. Please analyze the command and return only a structured JSON object with the necessary parameters for the requested model, using the following formats: For a pyramid, return: { \"shape\": \"pyramid\", \"height\": <number>, \"baseSide\": <number> }. For a cube, return: { \"shape\": \"cube\", \"side\": <number> }. For a cylinder, return: { \"shape\": \"cylinder\", \"radius\": <number>, \"height\": <number> }. For a cone, return: { \"shape\": \"cone\", \"baseRadius\": <number>, \"height\": <number> }. For a sphere, return: { \"shape\": \"sphere\", \"radius\": <number> }. For a cuboid, return: { \"shape\": \"cuboid\", \"length\": <number>, \"width\": <number>, \"height\": <number> }. Do not include any additional text, explanations, or formatting." },
                         new { role = "user", content = command }
