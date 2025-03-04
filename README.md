@@ -1,4 +1,4 @@
-# GPT2GH
+# GPT2GH 
 This project is a part of Junke Zhao's Master's thesis. 
 
 #Key Functions
