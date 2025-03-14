@@ -21,7 +21,7 @@ namespace GPT2GH
           : base("Python Code Generator",
                  "PyGen",
                  "Generate Python code (as a string) for Grasshopper Python Script based on a natural language command.",
-                 "AI",
+                 "GPT2GH",
                  "Generation")
         {
         }

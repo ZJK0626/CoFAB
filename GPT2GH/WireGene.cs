@@ -12,7 +12,7 @@ namespace MyGrasshopperPlugin
         public SlicingBrepComponent()
           : base("Slicing Brep", "Slicer",
               "Slice a Brep into contour curves",
-              "AI", "Processing")
+              "GPT2GH", "Processing")
         {
         }
 
