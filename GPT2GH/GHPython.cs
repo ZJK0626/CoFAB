@@ -208,7 +208,7 @@ No markdown fences, no additional text or explanation."
                     // 若出错，则返回类似 {"error":"..."}
                     return "{\"error\":\"" + ex.Message + "\"}";
                 }
-            }
+            } 
         }
 
         protected override Bitmap Icon => null;
@@ -216,3 +216,4 @@ No markdown fences, no additional text or explanation."
         public override Guid ComponentGuid => new Guid("E1112223-4444-5555-9999-ABCDEF123457");
     }
 }
+
