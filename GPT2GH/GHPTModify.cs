@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 using Rhino;
 using Rhino.Geometry;
 
-namespace GPT2GHModifier
+namespace GPT2GH
 {
     public class GPT2GHModifier : GH_Component
     {

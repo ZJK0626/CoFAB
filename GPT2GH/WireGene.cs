@@ -5,7 +5,7 @@ using Rhino.Geometry;
 using Rhino;
 using Rhino.Geometry.Intersect;
 
-namespace MyGrasshopperPlugin
+namespace GPT2GH
 {
     public class SlicingBrepComponent : GH_Component
     {
