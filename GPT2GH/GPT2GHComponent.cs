@@ -23,7 +23,7 @@ namespace GPT2GH
           : base("GPT2GH Generator",
                  "GPT",
                  "Generate basic solids via natural language instructions using the OpenAI API.",
-                 "AI", "Generation")
+                 "GPT2GH", "Generation")
         {
         }
 

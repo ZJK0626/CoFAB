@@ -25,7 +25,7 @@ namespace GPT2GH
           : base("GPT Transformer",
                  "TransformAI",
                  "Use OpenAI to parse transform commands for a Brep and perform the transformation",
-                 "AI",
+                 "GPT2GH",
                  "Generation")
         {
         }
