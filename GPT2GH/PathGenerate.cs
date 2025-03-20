@@ -89,7 +89,6 @@ namespace GPT2GH
                     "Failed to write G-code file: " + ex.Message);
             }
 
-            // 4. 将 G-code 文本输出到 GH
             DA.SetData(0, gcodeText);
         }
 
