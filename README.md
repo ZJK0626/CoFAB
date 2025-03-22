@@ -7,5 +7,5 @@ This project is a part of Junke Zhao's Master's thesis.
    1.2 GPT2GH Modifier: This component receives a brep, a natural language command, and OpenAI API, return a new brep as user requests. Current modification ability include move, copy, rotate, scale and array.
    1.3 GPT2GH Python: This component receives a natural language command and OpenAI API, return a series of python code to generate geometries.
 
-2. Wire Mesh and Printing Track Generator
+2. Wire Mesh and Printing path Generator
 3. Communicator with Robotic Arm
