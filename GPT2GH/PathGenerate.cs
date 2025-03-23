@@ -16,7 +16,7 @@ namespace GPT2GH
           : base("Export GCode",               // 组件名称
                  "GCode",                      // GH 中简短昵称
                  "Export lines as simple G-code",
-                 "AI",                         // GH 一级标签 (同之前 SlicingBrepComponent)
+                 "GHT2GH",                         // GH 一级标签 (同之前 SlicingBrepComponent)
                  "Processing"                  // GH 二级标签
                 )
         {
