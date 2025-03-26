@@ -13,7 +13,7 @@ public class ShapEComponent : GH_Component
       : base("ShapE Generator",
              "ShapEGen",
              "Generates a 3D model via Shap-E Python script",
-             "GPT2GH", // 你想放在哪个Grasshopper tab下面
+             "GPT2GH", 
              "Text2Mesh")
     { }
 
