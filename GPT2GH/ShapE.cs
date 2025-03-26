@@ -22,9 +22,15 @@ public class ShapEComponent : GH_Component
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddTextParameter("Prompt", "Prompt", "Text prompt for Shap-E", GH_ParamAccess.item, "a coffee mug");
-        pManager.AddNumberParameter("GuidanceScale", "G", "Guidance scale factor", GH_ParamAccess.item, 15.0);
-        pManager.AddIntegerParameter("KarrasSteps", "Steps", "Number of sampling steps (karras_steps)", GH_ParamAccess.item, 48);
+        pManager.AddNumberParameter("GuidanceScale", "G", "Guidance scale factor", GH_ParamAccess.item, 12.0);
+        pManager.AddIntegerParameter("KarrasSteps", "Steps", "Number of sampling steps (Calculation_steps)", GH_ParamAccess.item, 64);
         pManager.AddBooleanParameter("Run", "Run", "Set to true to run generation", GH_ParamAccess.item, false);
+
+        // 是否执行 QuadReMesh
+        pManager.AddBooleanParameter("Remesh", "Remesh", "If true, run QuadReMesh after generation", GH_ParamAccess.item, true);
+
+        // 可选：目标四边形数量
+        pManager.AddIntegerParameter("TargetQuads", "TQ", "Approximate target quad count", GH_ParamAccess.item, 2000);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
@@ -41,10 +47,15 @@ public class ShapEComponent : GH_Component
         double guidanceScale = 12.0;
         int steps = 64;
         bool runGeneration = false;
+        bool doRemesh = true;        // <- 新增
+        int targetQuadCount = 2000;   // <- 新增
+
         if (!DA.GetData(0, ref prompt)) return;
         if (!DA.GetData(1, ref guidanceScale)) return;
         if (!DA.GetData(2, ref steps)) return;
         if (!DA.GetData(3, ref runGeneration)) return;
+        if (!DA.GetData(4, ref doRemesh)) return;
+        if (!DA.GetData(5, ref targetQuadCount)) return;
 
         // 如果没勾选 Run，就不执行
         if (!runGeneration) return;
@@ -100,6 +111,28 @@ public class ShapEComponent : GH_Component
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "OBJ file not found: " + objFile);
         }
+
+        if (doRemesh)
+        {
+            // 配置参数
+            var quadParams = new Rhino.Geometry.QuadRemeshParameters();
+            quadParams.TargetQuadCount = targetQuadCount;
+            // 其他可选配置：
+            // quadParams.AdaptiveSize = 50; // 介于 0-100, 控制自适应多边形大小
+            // quadParams.GuideCurveInfluence = 0;  // 如果有引导线, 0~100
+            // quadParams.DetectHardEdges = true;   // 是否检测硬边
+
+            Mesh remeshed = ghMesh.QuadRemesh(quadParams);
+            if (remeshed != null)
+            {
+                ghMesh = remeshed; // 用重建后的网格覆盖
+            }
+            else
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "QuadRemesh failed to generate a new mesh.");
+            }
+        }
+
 
         // 对网格做自动缩放，让最大维度 = 100
         ScaleMeshToMaxDimension(ref ghMesh, 100.0);
