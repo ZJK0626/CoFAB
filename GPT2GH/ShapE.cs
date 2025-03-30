@@ -61,8 +61,8 @@ public class ShapEComponent : GH_Component
         if (!runGeneration) return;
 
         // 2. 调用外部 Python 脚本
-        string pythonExe = @"C:\Users\93914\anaconda3\envs\shap_e_env\python.exe";
-        string scriptPath = @"C:\Users\93914\shap-e\shap_e_generate.py";
+        string pythonExe = @"C:\Users\DELL\anaconda3\envs\shap_e_env\python.exe";
+        string scriptPath = @"C:\Users\DELL\shap-e\shap_e_generate.py";
         string tempDir = Path.GetTempPath();
         string objFile = Path.Combine(tempDir, $"shap_e_{Guid.NewGuid()}.obj");
 
