@@ -14,7 +14,7 @@ namespace GPT2GH
     {
         public MeshEdgeGCodeGenerator()
             : base("Mesh Edge GCode Generator", "MeshGCode",
-                "从网格提取边缘并生成优化的3D打印G代码",
+                "Generate G-code from mesh edge",
                 "GPT2GH", "MeshProcessing")
         {
         }
