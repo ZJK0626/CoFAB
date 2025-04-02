@@ -24,6 +24,7 @@
   
   <ItemGroup>
     <Compile Remove="GHPython.cs" />
+    <Compile Remove="PathGenerate.cs" />
   </ItemGroup>
   
   <ItemGroup>

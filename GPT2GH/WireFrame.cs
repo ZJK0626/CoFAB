@@ -78,13 +78,13 @@ namespace GPT2GH
             // 确保层数非负
             if (level < 0) level = 0;
 
-            // 限制上限为 5，防止过度细分卡死
-            if (level > 5)
+            // 限制上限为 3，防止过度细分卡死
+            if (level > 3)
             {
-                level = 5;
+                level = 3;
                 this.AddRuntimeMessage(
                     GH_RuntimeMessageLevel.Warning,
-                    "Subdivision level exceeded maximum of 5. Clamped to 5."
+                    "Subdivision level exceeded maximum of 3. Clamped to 3."
                 );
             }
 
