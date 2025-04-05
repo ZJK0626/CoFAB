@@ -34,18 +34,18 @@ namespace GPT2GH
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            //pManager.AddTextParameter("Mode", "M", "Generation mode: 'image' or 'text'", GH_ParamAccess.item, "image");
+            pManager.AddTextParameter("Mode", "M", "Generation mode: 'image' or 'text'", GH_ParamAccess.item, "image");
             pManager.AddTextParameter("Input", "Input", "For image mode: path to the input image file. For text mode: text prompt", GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Seed", "Seed", "Random seed for generation", GH_ParamAccess.item, 0);
+            pManager.AddIntegerParameter("Seed", "S", "Random seed for generation", GH_ParamAccess.item, 0);
             pManager.AddTextParameter("Output Directory", "OutPath", "Directory to save generated files", GH_ParamAccess.item);
 
             // Advanced parameters with defaults
-            pManager.AddIntegerParameter("SS Steps", "Steps", "Sampling steps for sparse structure generation", GH_ParamAccess.item, 12);
-            pManager.AddNumberParameter("SS Guidance", "Strength", "Guidance strength for sparse structure generation", GH_ParamAccess.item, 7.5);
-            pManager.AddIntegerParameter("Sampling Latent Steps", "LS", "Sampling steps for structured latent generation", GH_ParamAccess.item, 12);
+            pManager.AddIntegerParameter("SS Steps", "SS", "Sampling steps for sparse structure generation", GH_ParamAccess.item, 12);
+            pManager.AddNumberParameter("SS Guidance", "SG", "Guidance strength for sparse structure generation", GH_ParamAccess.item, 7.5);
+            pManager.AddIntegerParameter("SLat Steps", "LS", "Sampling steps for structured latent generation", GH_ParamAccess.item, 12);
             pManager.AddNumberParameter("SLat Guidance", "LG", "Guidance strength for structured latent generation", GH_ParamAccess.item, 3.0);
 
-            //pManager.AddTextParameter("Batch Script", "B", "Path to the TRELLIS batch script", GH_ParamAccess.item);
+            pManager.AddTextParameter("Batch Script", "B", "Path to the TRELLIS batch script", GH_ParamAccess.item, @"C:\Users\DELL\TRELLIS\run_trellis.bat");
             pManager.AddBooleanParameter("Generate", "Run", "Set to true to start generation", GH_ParamAccess.item, false);
 
             // Hide advanced parameters by default
@@ -57,12 +57,12 @@ namespace GPT2GH
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddMeshParameter("Mesh", "Mesh", "Generated 3D mesh", GH_ParamAccess.item);
-            pManager.AddTextParameter("Status", "Status", "Generation status information", GH_ParamAccess.item);
-            pManager.AddTextParameter("Log", "Log", "Process output log", GH_ParamAccess.item);
-            //pManager.AddTextParameter("GLB Path", "GLB", "Path to the GLB file with textures", GH_ParamAccess.item);
-            //pManager.AddTextParameter("PLY Path", "PLY", "Path to the Gaussian PLY file", GH_ParamAccess.item);
-            //pManager.AddTextParameter("Preview", "P", "Path to the preview video", GH_ParamAccess.item);
+            pManager.AddMeshParameter("Mesh", "M", "Generated 3D mesh", GH_ParamAccess.item);
+            pManager.AddTextParameter("Status", "S", "Generation status information", GH_ParamAccess.item);
+            pManager.AddTextParameter("Log", "L", "Process output log", GH_ParamAccess.item);
+            pManager.AddTextParameter("GLB Path", "GLB", "Path to the GLB file with textures", GH_ParamAccess.item);
+            pManager.AddTextParameter("PLY Path", "PLY", "Path to the Gaussian PLY file", GH_ParamAccess.item);
+            pManager.AddTextParameter("Preview", "P", "Path to the preview video", GH_ParamAccess.item);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
@@ -76,7 +76,7 @@ namespace GPT2GH
             double ssGuidance = 7.5;
             int slatSteps = 12;
             double slatGuidance = 3.0;
-            string batchScriptPath = "";
+            string batchScriptPath = @"C:\Users\DELL\TRELLIS\run_trellis.bat";
             bool generate = false;
 
             if (!DA.GetData(0, ref mode)) return;
@@ -116,6 +116,13 @@ namespace GPT2GH
                 return;
             }
 
+            // Check if batch script path exists
+            if (string.IsNullOrEmpty(batchScriptPath) || !File.Exists(batchScriptPath))
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Batch script not found at: {batchScriptPath}");
+                return;
+            }
+
             // Create output directory if it doesn't exist
             try
             {
@@ -128,17 +135,6 @@ namespace GPT2GH
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Failed to create output directory: {ex.Message}");
                 return;
-            }
-
-            // Auto-detect batch script path if not provided
-            if (string.IsNullOrEmpty(batchScriptPath))
-            {
-                batchScriptPath = AutoDetectBatchScriptPath();
-                if (string.IsNullOrEmpty(batchScriptPath))
-                {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Batch script path not provided and could not be auto-detected");
-                    return;
-                }
             }
 
             Mesh resultMesh = null;
@@ -318,31 +314,6 @@ namespace GPT2GH
             }
         }
 
-        private string AutoDetectBatchScriptPath()
-        {
-            // Check if the batch script is in the same directory as the assembly
-            string assemblyDir = Path.GetDirectoryName(typeof(TrellisComponent).Assembly.Location);
-            string batchPath = Path.Combine(assemblyDir, "C:\\Users\\DELL\\TRELLIS\\run_trellis.bat");
-
-            if (File.Exists(batchPath))
-            {
-                return batchPath;
-            }
-
-            // Check subdirectories
-            string[] subdirs = Directory.GetDirectories(assemblyDir);
-            foreach (string dir in subdirs)
-            {
-                batchPath = Path.Combine(dir, "C:\\Users\\DELL\\TRELLIS\\run_trellis.bat");
-                if (File.Exists(batchPath))
-                {
-                    return batchPath;
-                }
-            }
-
-            return null;
-        }
-
         private Mesh ImportObj(string path)
         {
             try
@@ -447,9 +418,15 @@ namespace GPT2GH
                     mesh.Normals.ComputeNormals();
                     mesh.Compact();
 
-                    // Apply simple transformation to ensure correct orientation in Rhino
-                    // Rotate 90 degrees around X axis to match Rhino's coordinate system
+                    // Apply transformations
+                    // 1. First, rotate 90 degrees around X axis to match Rhino's coordinate system (existing)
                     mesh.Rotate(Math.PI / 2, Vector3d.XAxis, Point3d.Origin);
+
+                    // 2. Rotate 90 degrees clockwise (negative direction) around Y axis
+                    RotateModelAroundY(mesh, -Math.PI / 2);
+
+                    // 3. Scale the mesh by a factor of 80
+                    EnlargeMesh(mesh, 80.0);
 
                     return mesh;
                 }
@@ -465,6 +442,40 @@ namespace GPT2GH
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Failed to import OBJ: {ex.Message}");
                 return null;
             }
+        }
+
+        // Function 1: Rotate model 90 degrees clockwise along the Y-axis
+        private void RotateModelAroundY(Mesh mesh, double angle)
+        {
+            if (mesh == null || mesh.Vertices.Count == 0)
+                return;
+
+            // Calculate the center of the mesh (for rotation around its center)
+            BoundingBox bbox = mesh.GetBoundingBox(false);
+            Point3d center = bbox.Center;
+
+            // Create a rotation transformation around Y axis
+            Transform rotation = Transform.Rotation(angle, Vector3d.YAxis, center);
+
+            // Apply the transformation to the mesh
+            mesh.Transform(rotation);
+        }
+
+        // Function 2: Enlarge the mesh by a factor
+        private void EnlargeMesh(Mesh mesh, double scaleFactor)
+        {
+            if (mesh == null || mesh.Vertices.Count == 0)
+                return;
+
+            // Calculate the center of the mesh (for scaling around its center)
+            BoundingBox bbox = mesh.GetBoundingBox(false);
+            Point3d center = bbox.Center;
+
+            // Create a scaling transformation
+            Transform scaling = Transform.Scale(center, scaleFactor);
+
+            // Apply the transformation to the mesh
+            mesh.Transform(scaling);
         }
 
         public override void RemovedFromDocument(GH_Document document)
