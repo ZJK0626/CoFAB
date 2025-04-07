@@ -473,5 +473,7 @@ namespace GPT2GH
         protected override System.Drawing.Bitmap Icon => null; // You may add a custom icon here
 
         public override Guid ComponentGuid => new Guid("3c07a6f2-2b2e-4a6c-9f7b-0e1d3f4c5b2e");
+
+        public static object Properties { get; internal set; }
     }
 }

@@ -32,6 +32,7 @@ namespace GPT2GH
 
         public override Guid ComponentGuid => new Guid("7A2B8D3E-4F5C-40A7-B2C1-DEFAB1235678");
 
+ 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Mode", "M", "Generation mode: 'image' or 'text'", GH_ParamAccess.item, "image");
@@ -477,6 +478,7 @@ namespace GPT2GH
             // Apply the transformation to the mesh
             mesh.Transform(scaling);
         }
+
 
         public override void RemovedFromDocument(GH_Document document)
         {
