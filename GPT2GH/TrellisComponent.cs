@@ -423,11 +423,8 @@ namespace GPT2GH
                     // 1. First, rotate 90 degrees around X axis to match Rhino's coordinate system (existing)
                     mesh.Rotate(Math.PI / 2, Vector3d.XAxis, Point3d.Origin);
 
-                    // 2. Rotate 90 degrees clockwise (negative direction) around Y axis
-                    RotateModelAroundY(mesh, -Math.PI / 2);
-
-                    // 3. Scale the mesh by a factor of 80
-                    EnlargeMesh(mesh, 80.0);
+                    // 2. Scale the mesh by a factor of 80
+                    EnlargeMesh(mesh, 50.0);
 
                     return mesh;
                 }
@@ -445,22 +442,7 @@ namespace GPT2GH
             }
         }
 
-        // Function 1: Rotate model 90 degrees clockwise along the Y-axis
-        private void RotateModelAroundY(Mesh mesh, double angle)
-        {
-            if (mesh == null || mesh.Vertices.Count == 0)
-                return;
-
-            // Calculate the center of the mesh (for rotation around its center)
-            BoundingBox bbox = mesh.GetBoundingBox(false);
-            Point3d center = bbox.Center;
-
-            // Create a rotation transformation around Y axis
-            Transform rotation = Transform.Rotation(angle, Vector3d.YAxis, center);
-
-            // Apply the transformation to the mesh
-            mesh.Transform(rotation);
-        }
+      
 
         // Function 2: Enlarge the mesh by a factor
         private void EnlargeMesh(Mesh mesh, double scaleFactor)
