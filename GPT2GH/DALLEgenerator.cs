@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Drawing.Imaging;
 
-namespace Dalle3GH
+namespace GPT2GH
 {
     public class Dalle3GH : GH_Component
     {
@@ -24,7 +24,7 @@ namespace Dalle3GH
           : base("DALL-E 3 Generator",
                  "DALL-E 3",
                  "使用 OpenAI DALL·E 3 API 根据文字 Prompt 生成图像，并将图片临时储存至本地。",
-                 "Dalle3GH", "Generation")
+                 "GPT2GH", "Text2Mesh")
         {
         }
 
