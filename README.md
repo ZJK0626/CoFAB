@@ -194,6 +194,6 @@ This project is proprietary research software, developed as part of an academic 
 
 ## Contact
 
-Junke Zhao - [Add contact information if appropriate]
+Junke Zhao - zhao.junke0626@gmail.com / junkez@andrew.cmu.edu
 
-Project Link: [Add repository URL if appropriate]
+Project Link: https://www.junkezhao.design
