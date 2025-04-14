@@ -1,4 +1,4 @@
-# GPT2GH 
+# CoFAB
 This project is a part of Junke Zhao's Master's thesis. 
 
 #Key Functions
