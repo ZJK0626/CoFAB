@@ -15,7 +15,7 @@ namespace CoFab
         //Return a short string describing the purpose of this GHA library.
         public override string Description => "";
 
-        public override Guid Id => new Guid("ca2e9a08-76e6-48df-a936-33b679804530");
+        public override Guid Id => new Guid("EF0C0F1C-4FD5-4B77-B76D-85B05860A343");
 
         //Return a string identifying you or your company.
         public override string AuthorName => "";

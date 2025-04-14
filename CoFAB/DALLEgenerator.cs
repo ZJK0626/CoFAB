@@ -228,6 +228,6 @@ namespace CoFab
         // 如果你想为组件设置自定义图标，可以在此返回一个 Bitmap
         protected override Bitmap Icon => null;
 
-        public override Guid ComponentGuid => new Guid("efc90951-1111-4bc2-9e1d-223344556677");
+        public override Guid ComponentGuid => new Guid("5E71D2A9-690F-4B4F-9116-94D31B3310E0");
     }
 }

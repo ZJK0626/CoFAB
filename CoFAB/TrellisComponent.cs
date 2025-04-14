@@ -30,7 +30,7 @@ namespace CoFab
         {
         }
 
-        public override Guid ComponentGuid => new Guid("7A2B8D3E-4F5C-40A7-B2C1-DEFAB1235678");
+        public override Guid ComponentGuid => new Guid("017B3F14-A807-4F99-B714-DE945DD4120D");
 
  
         protected override void RegisterInputParams(GH_InputParamManager pManager)

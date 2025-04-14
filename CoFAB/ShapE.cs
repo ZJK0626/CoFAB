@@ -17,7 +17,7 @@ public class ShapEComponent : GH_Component
              "AI-assisted 3D Generator")
     { }
 
-    public override Guid ComponentGuid => new Guid("43C09819-C826-486E-994F-EDB6490A0B33"); 
+    public override Guid ComponentGuid => new Guid("A0CC66F7-3D67-4559-94AD-E06B6F0D92E1"); 
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {

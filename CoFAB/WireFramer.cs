@@ -14,7 +14,7 @@ public class MeshToWireframeComponent : GH_Component
              "Digital to Fabrication")
     { }
 
-    public override Guid ComponentGuid => new Guid("4D3A2B19-F526-48FE-B514-AC9D5A0C4B23");
+    public override Guid ComponentGuid => new Guid("40BB47B5-9EBA-47C0-AEDB-1BBBF66802F2");
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {

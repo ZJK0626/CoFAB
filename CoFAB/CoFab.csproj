@@ -17,14 +17,12 @@
   <PropertyGroup>
     <!-- Specifies information for Assembly and Yak -->
     <Version>1.0</Version>
-    <Title>GPT2GH</Title>
-    <Company>GPT2GH Authors</Company>
-    <Description>Description of GPT2GH</Description>
+    <Title>CoFAB</Title>
+    <Company>Junke Zhao</Company>
+    <Description>AI-Collaboration System for Model Generation and Rapid Prototyping</Description>
   </PropertyGroup>
   
   <ItemGroup>
-    <Compile Remove="GHPython.cs" />
-    <Compile Remove="PathGenerate.cs" />
   </ItemGroup>
   
   <ItemGroup>

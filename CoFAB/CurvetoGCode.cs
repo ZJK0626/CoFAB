@@ -721,7 +721,7 @@ namespace CoFab
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("B5D7E4F8-1A5C-42A1-9D79-E2F3C8D5F610"); }
+            get { return new Guid("44C78C0A-2890-4135-83B6-F935AB9D824C"); }
         }
     }
 }

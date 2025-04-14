@@ -272,7 +272,7 @@ namespace CoFab
 
         protected override Bitmap Icon => null;
 
-        public override Guid ComponentGuid => new Guid("A59B753E-1234-4B1F-986B-0A1CE7A4A9EC");
+        public override Guid ComponentGuid => new Guid("BDAF3D02-48F9-49B3-8946-FC822D9C7156");
     }
 
     /// <summary>
