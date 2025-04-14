@@ -10,9 +10,9 @@ using Newtonsoft.Json.Linq;
 using Rhino;
 using Rhino.Geometry;
 
-namespace GPT2GH
+namespace CoFab
 {
-    public class GPT2GHModifier : GH_Component
+    public class CoFabModifier : GH_Component
     {
         // 异步任务存储变量
         private Task<string> apiTask = null;
@@ -21,12 +21,12 @@ namespace GPT2GH
         // 状态信息用于实时反馈
         private string statusMessage = "";
 
-        public GPT2GHModifier()
-          : base("GPT Transformer",
-                 "TransformAI",
+        public CoFabModifier()
+          : base("GPT Modifier",
+                 "GPTModifier",
                  "Use OpenAI to parse transform commands for a Brep and perform the transformation",
-                 "GPT2GH",
-                 "Generation")
+                 "CoFab",
+                 "GPTGeneration")
         {
         }
 

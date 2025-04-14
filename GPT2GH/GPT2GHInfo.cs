@@ -3,11 +3,11 @@ using System.Drawing;
 using Grasshopper;
 using Grasshopper.Kernel;
 
-namespace GPT2GH
+namespace CoFab
 {
-    public class GPT2GHInfo : GH_AssemblyInfo
+    public class CoFabInfo : GH_AssemblyInfo
     {
-        public override string Name => "GPT2GH";
+        public override string Name => "CoFab";
 
         //Return a 24x24 pixel bitmap to represent this GHA library.
         public override Bitmap Icon => null;

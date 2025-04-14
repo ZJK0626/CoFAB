@@ -8,9 +8,9 @@ using Newtonsoft.Json;          // 用于 JSON 序列化
 using Newtonsoft.Json.Linq;     // 用于 JSON 解析
 using System.Text.RegularExpressions; // 用于正则表达式解析
 
-namespace GPT2GH
+namespace CoFab
 {
-    public class GPT2GH : GH_Component
+    public class CoFab : GH_Component
     {
         // 异步任务存储变量
         private Task<string> apiTask = null;
@@ -19,11 +19,11 @@ namespace GPT2GH
         // 状态信息用于实时反馈
         private string statusMessage = "";
 
-        public GPT2GH()
-          : base("GPT2GH Generator",
-                 "GPT",
+        public CoFab()
+          : base("GPT Generator",
+                 "GPTGenerator",
                  "Generate basic solids via natural language instructions using the OpenAI API.",
-                 "GPT2GH", "Generation")
+                 "CoFab", "GPTGeneration")
         {
         }
 

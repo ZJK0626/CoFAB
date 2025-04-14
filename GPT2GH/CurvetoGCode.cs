@@ -5,7 +5,7 @@ using System.Text;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace GPT2GH
+namespace CoFab
 {
     public class CurveToGCodeComponent : GH_Component
     {
@@ -13,11 +13,11 @@ namespace GPT2GH
         /// Constructor for the curve-to-GCode component
         /// </summary>
         public CurveToGCodeComponent()
-          : base("Curve To GCode",
+          : base("GCode Generation",
                  "CurveGCode",
                  "Convert curves and lines to G-code for robotic arm 3D printers and CNC machines",
-                 "GPT2GH",
-                 "GCode")
+                 "CoFab",
+                 "Digital to Fabrication")
         {
         }
 
@@ -259,7 +259,7 @@ namespace GPT2GH
             sb.AppendLine($";MAXY:{bounds.Max.Y:F3}");
             sb.AppendLine($";MAXZ:{bounds.Max.Z:F3}");
             sb.AppendLine();
-            sb.AppendLine(";Generated with GPT2GH CurveToGCode");
+            sb.AppendLine(";Generated with CoFab CurveToGCode");
             sb.AppendLine($"M104 S{printTemp}");
             sb.AppendLine("M105");
             sb.AppendLine($"M109 S{printTemp}");

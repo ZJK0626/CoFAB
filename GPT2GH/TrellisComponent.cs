@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace GPT2GH
+namespace CoFab
 {
     public class TrellisComponent : GH_Component
     {
@@ -25,8 +25,8 @@ namespace GPT2GH
           : base("TRELLIS 3D Generator",
                  "TRELLIS",
                  "Generate 3D models from images or text using the TRELLIS model",
-                 "GPT2GH",
-                 "Text2Mesh")
+                 "CoFab",
+                 "AI-assisted 3D Generator")
         {
         }
 

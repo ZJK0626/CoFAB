@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Drawing.Imaging;
 
-namespace GPT2GH
+namespace CoFab
 {
     public class Dalle3GH : GH_Component
     {
@@ -23,33 +23,33 @@ namespace GPT2GH
         public Dalle3GH()
           : base("DALL-E 3 Generator",
                  "DALL-E 3",
-                 "使用 OpenAI DALL·E 3 API 根据文字 Prompt 生成图像，并将图片临时储存至本地。",
-                 "GPT2GH", "Text2Mesh")
+                 "Call OpenAI DALL-E API, to generate prompt images, use it for subsquent 3D generation.",
+                 "CoFab", "AI-assisted 3D Generator")
         {
         }
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             // 文字描述（用户自定义内容）
-            pManager.AddTextParameter("Prompt", "Prompt", "用于生成图像的文字提示", GH_ParamAccess.item);
+            pManager.AddTextParameter("Prompt", "Prompt", "Text prompt for image generation", GH_ParamAccess.item);
             // OpenAI API Key
             pManager.AddTextParameter("API Key", "Key", "OpenAI API Key", GH_ParamAccess.item);
             // 指定图像尺寸，可选 1024x1024 / 1024x1792 / 1792x1024
-            pManager.AddTextParameter("Size", "Size", "图像尺寸（DALL·E 3 仅支持 1024x1024, 1024x1792, 1792x1024）", GH_ParamAccess.item, "1024x1024");
+            pManager.AddTextParameter("Size", "Size", "Image Size（DALL·E 3 only support 1024x1024, 1024x1792, 1792x1024）", GH_ParamAccess.item, "1024x1024");
             // quality 参数：standard / hd
             pManager.AddTextParameter("Quality", "Quality", "图像质量（'standard'或'hd'，默认'standard'）", GH_ParamAccess.item, "standard");
             // style 参数：vivid / natural
-            pManager.AddTextParameter("Style", "Style", "图像风格（'vivid'或'natural'，默认'vivid'）", GH_ParamAccess.item, "vivid");
+            pManager.AddTextParameter("Style", "Style", "Image style（'vivid'or 'natural'，default 'vivid'）", GH_ParamAccess.item, "vivid");
             // 运行开关：设置为 true 启动 API 调用
-            pManager.AddBooleanParameter("Run", "Run", "设置 true 启动 API 调用", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("Run", "Run", "Switch of the plugin", GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             // 输出生成的图片临时存储路径
-            pManager.AddTextParameter("Image Path", "Path", "生成的图片临时存储路径（PNG）", GH_ParamAccess.item);
+            pManager.AddTextParameter("Image Path", "Path", "The temporary storage path of the generated image（PNG）", GH_ParamAccess.item);
             // 输出实时状态信息
-            pManager.AddTextParameter("Status", "Status", "执行状态", GH_ParamAccess.item);
+            pManager.AddTextParameter("Status", "Status", "The running status", GH_ParamAccess.item);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
@@ -199,7 +199,7 @@ namespace GPT2GH
                 {
                     model = "dall-e-3",
                     prompt = "Create an image that looks like a 3D modeling render at a 45-degree isometric angle. " +
-                    "Style it as it is a rendering image. " + "White simple background, no clutter, no extraneous detail." +
+                    "White simple background, no any other elements except the item, no extraneous detail." +
                     "User Description: " + prompt,
                     n = 1,                     // DALL·E 3 仅支持 n=1
                     size = size,               // "1024x1024", "1024x1792", or "1792x1024"
