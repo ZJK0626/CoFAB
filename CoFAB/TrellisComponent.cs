@@ -18,7 +18,6 @@ namespace CoFab
         private string _lastOutputDir = null;
         private string _statusMessage = "Ready";
 
-        // Log storage
         private string _logOutput = "";
 
         public TrellisComponent()
