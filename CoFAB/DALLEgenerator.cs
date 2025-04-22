@@ -183,8 +183,7 @@ namespace CoFab
         /// </summary>
         private async Task<string> CallDalle3ApiAsync(string prompt, string apiKey, string size, string quality, string style)
         {
-            // 使用 DALL·E 3 时的最新 endpoint 仍为 /v1/images/generations
-            // 只需在请求体里指定 model = "dall-e-3"
+
             string endpoint = "https://api.openai.com/v1/images/generations";
 
             // 如果使用 DALL·E 3，则必须 size ∈ { 1024x1024, 1024x1792, 1792x1024 }，n=1
@@ -198,7 +197,7 @@ namespace CoFab
                 var payload = new
                 {
                     model = "dall-e-3",
-                    prompt = "Create an image that looks like a 3D modeling render at a 45-degree isometric angle. " +
+                    prompt = "Create an image at a 45-degree isometric angle. " +
                     "White simple background, no any other elements except the item, no extraneous detail." +
                     "User Description: " + prompt,
                     n = 1,                     // DALL·E 3 仅支持 n=1
