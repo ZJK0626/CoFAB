@@ -13,11 +13,8 @@ namespace CoFab
 {
     public class Dalle3GH : GH_Component
     {
-        // 异步任务存储变量
         private Task<string> apiTask = null;
-        // 存储 API 返回的 JSON 字符串
         private string currentResult = null;
-        // 状态信息用于实时反馈
         private string statusMessage = "";
 
         public Dalle3GH()
@@ -30,25 +27,25 @@ namespace CoFab
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            // 文字描述（用户自定义内容）
+            // Natural Language Prompts
             pManager.AddTextParameter("Prompt", "Prompt", "Text prompt for image generation", GH_ParamAccess.item);
             // OpenAI API Key
             pManager.AddTextParameter("API Key", "Key", "OpenAI API Key", GH_ParamAccess.item);
-            // 指定图像尺寸，可选 1024x1024 / 1024x1792 / 1792x1024
+            // Image Size: 1024x1024 / 1024x1792 / 1792x1024
             pManager.AddTextParameter("Size", "Size", "Image Size（DALL·E 3 only support 1024x1024, 1024x1792, 1792x1024）", GH_ParamAccess.item, "1024x1024");
-            // quality 参数：standard / hd
+            // quality：standard / hd
             pManager.AddTextParameter("Quality", "Quality", "图像质量（'standard'或'hd'，默认'standard'）", GH_ParamAccess.item, "standard");
-            // style 参数：vivid / natural
+            // style：vivid / natural
             pManager.AddTextParameter("Style", "Style", "Image style（'vivid'or 'natural'，default 'vivid'）", GH_ParamAccess.item, "vivid");
-            // 运行开关：设置为 true 启动 API 调用
+            // Running Switch: Switch to True to call the API
             pManager.AddBooleanParameter("Run", "Run", "Switch of the plugin", GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            // 输出生成的图片临时存储路径
+            // Temporary image path
             pManager.AddTextParameter("Image Path", "Path", "The temporary storage path of the generated image（PNG）", GH_ParamAccess.item);
-            // 输出实时状态信息
+            // Real-time status message
             pManager.AddTextParameter("Status", "Status", "The running status", GH_ParamAccess.item);
         }
 
@@ -200,11 +197,11 @@ namespace CoFab
                     prompt = "Create an image at a 45-degree isometric angle. " +
                     "White simple background, no any other elements except the item, no extraneous detail." +
                     "User Description: " + prompt,
-                    n = 1,                     // DALL·E 3 仅支持 n=1
-                    size = size,               // "1024x1024", "1024x1792", or "1792x1024"
+                    n = 1,                  
+                    size = size,              
                     response_format = "b64_json",
-                    quality = quality,         // "standard" or "hd"
-                    style = style              // "vivid" or "natural"
+                    quality = quality,         
+                    style = style              
                 };
 
                 string jsonPayload = JsonConvert.SerializeObject(payload);
