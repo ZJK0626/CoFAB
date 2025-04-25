@@ -10,7 +10,6 @@ CoFAB provides a comprehensive set of tools organized into three main categories
 
 ### 1. AI Model Generation and Modification
 
-- **DALL-E 3 Generator**: Generate concept images from text prompts using OpenAI's DALL-E 3, which can serve as inspiration or references for 3D modeling.
 - **ShapE Generator**: Create 3D models directly from text descriptions using the Shap-E AI model.
 - **TRELLIS 3D Generator**: Generate detailed 3D models from either images or text using the TRELLIS architecture.
 - **GPT Modifier**: Transform 3D models using natural language commands (move, scale, rotate, array) interpreted by GPT-4.
@@ -27,7 +26,7 @@ CoFAB provides a comprehensive set of tools organized into three main categories
 ## Installation
 
 1. **Prerequisites**:
-   - Rhino 8 (Windows or Mac)
+   - Rhino 8
    - Grasshopper for Rhino 8
    - .NET Framework 4.8 or higher
 
