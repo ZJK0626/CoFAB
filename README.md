@@ -2,7 +2,7 @@
 
 CoFAB is a Grasshopper plugin for Rhino that bridges the gap between artificial intelligence and digital fabrication. This toolkit enables designers to generate, modify, and prepare 3D models for fabrication using state-of-the-art AI models and natural language processing.
 
-*This project is part of Junke Zhao's Master's thesis research.*
+*This project is part of Junke Zhao's thesis for the Master of Science in Computational Design at Carnegie Mellon University.*
 
 ## Features
 
