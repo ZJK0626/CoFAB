@@ -1,75 +1,75 @@
-﻿using System;
-using System.Collections.Generic;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System.Linq;
 
-public class MeshToWireframeComponent : GH_Component
+namespace CoFab
 {
-    public MeshToWireframeComponent()
+    public class WireFramer : GH_Component
+    {
+        /// <summary>
+        /// Constructor for the WireFramer component
+        /// </summary>
+        public WireFramer()
       : base("Wireframer",
              "Wireframer",
-             "Transforms a mesh into a printable wireframe structure with self-supporting properties",
+                 "Transforms a mesh into a printable wireframe structure with self-supporting properties for 3D printing",
              "CoFab",
              "Digital to Fabrication")
-    { }
+        {
+        }
 
-    public override Guid ComponentGuid => new Guid("40BB47B5-9EBA-47C0-AEDB-1BBBF66802F2");
+        /// <summary>
+        /// Component GUID
+        /// </summary>
+        public override Guid ComponentGuid => new Guid("B5ECFD2F-7AE9-4FB7-94C2-A7560A021105");
 
     protected override void RegisterInputParams(GH_InputParamManager pManager)
     {
         pManager.AddMeshParameter("Mesh", "M", "Input mesh to transform to wireframe", GH_ParamAccess.item);
-        pManager.AddNumberParameter("ContourSpacing", "CS", "Distance between contour slices", GH_ParamAccess.item, 6.0);
-        pManager.AddNumberParameter("SupportAngle", "SA", "Maximum overhang angle (degrees)", GH_ParamAccess.item, 75.0);
-        pManager.AddIntegerParameter("TargetEdgeCount", "EC", "Target number of edges in wireframe", GH_ParamAccess.item, 800);
-        pManager.AddBooleanParameter("OptimizeForPrinting", "OP", "Apply self-supporting optimization", GH_ParamAccess.item, true);
-        pManager.AddNumberParameter("VertexDensity", "VD", "Minimum distance between vertices on contours", GH_ParamAccess.item, 4.0);
-        pManager.AddNumberParameter("Sparsity", "S", "Controls wireframe sparsity (higher = more sparse)", GH_ParamAccess.item, 1.0);
-        pManager.AddNumberParameter("PipeRadius", "R", "Radius of wireframe pipes", GH_ParamAccess.item, 0.5);
+            pManager.AddNumberParameter("Contour Spacing", "CS", "Distance between contour slices", GH_ParamAccess.item, 6.0);
+            pManager.AddVectorParameter("Build Direction", "D", "Build direction for 3D printing (typically Z-axis)", GH_ParamAccess.item, Vector3d.ZAxis);
+            pManager.AddNumberParameter("Max Overhang Angle", "A", "Maximum allowable overhang angle in degrees", GH_ParamAccess.item, 45.0);
+            pManager.AddNumberParameter("Tube Radius", "R", "Radius of the wireframe tubes", GH_ParamAccess.item, 0.5);
+            pManager.AddNumberParameter("Connection Density", "CD", "Density of connections between contours (0.0-1.0)", GH_ParamAccess.item, 0.5);
+            pManager.AddBooleanParameter("Optimize Structure", "Opt", "Enable structural optimization for printability", GH_ParamAccess.item, true);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
-        pManager.AddMeshParameter("WireframeMesh", "WM", "Wireframe mesh structure", GH_ParamAccess.item);
-        pManager.AddCurveParameter("Contours", "C", "Contour lines", GH_ParamAccess.list);
-        pManager.AddCurveParameter("PillarEdges", "P", "Pillar edges (vertical connections)", GH_ParamAccess.list);
+            pManager.AddMeshParameter("Wireframe", "W", "Wireframe mesh structure", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Contours", "C", "Extracted contour curves", GH_ParamAccess.list);
+            pManager.AddCurveParameter("Pillars", "P", "Connecting pillars", GH_ParamAccess.list);
         pManager.AddTextParameter("Stats", "S", "Wireframe statistics", GH_ParamAccess.item);
     }
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        // Input
+            // Input parameters
         Mesh inputMesh = null;
         double contourSpacing = 6.0;
-        double supportAngle = 75.0;
-        int targetEdgeCount = 800;
-        bool optimizeForPrinting = true;
-        double vertexDensity = 4.0;
-        double sparsity = 1.0;
-        double pipeRadius = 0.5;
+            Vector3d buildDirection = Vector3d.ZAxis;
+            double maxOverhangAngle = 45.0;
+            double tubeRadius = 0.5;
+            double connectionDensity = 0.5;
+            bool optimizeStructure = true;
 
         if (!DA.GetData(0, ref inputMesh)) return;
-        if (!DA.GetData(1, ref contourSpacing)) return;
-        if (!DA.GetData(2, ref supportAngle)) return;
-        if (!DA.GetData(3, ref targetEdgeCount)) return;
-        if (!DA.GetData(4, ref optimizeForPrinting)) return;
-        if (!DA.GetData(5, ref vertexDensity)) return;
-        if (!DA.GetData(6, ref sparsity)) return;
-        if (!DA.GetData(7, ref pipeRadius)) return;
-
-        // Apply sparsity factor
-        contourSpacing *= sparsity;
-        vertexDensity *= sparsity;
+            DA.GetData(1, ref contourSpacing);
+            DA.GetData(2, ref buildDirection);
+            DA.GetData(3, ref maxOverhangAngle);
+            DA.GetData(4, ref tubeRadius);
+            DA.GetData(5, ref connectionDensity);
+            DA.GetData(6, ref optimizeStructure);
 
         // Validate inputs
-        if (inputMesh == null || inputMesh.Vertices.Count == 0)
+            if (inputMesh == null || !inputMesh.IsValid)
         {
             AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Invalid input mesh");
             return;
         }
 
-        // Generate the scalar field for contours
-        Dictionary<int, double> scalarField = GenerateScalarField(inputMesh);
+            // Normalize build direction
+            buildDirection.Unitize();
 
         // Extract contours using the scalar field
         List<Curve> contours = ExtractContours(inputMesh, scalarField, contourSpacing);
@@ -426,8 +426,17 @@ public class MeshToWireframeComponent : GH_Component
         if (curve == null || curve.GetLength() < 0.01)
             return null;
 
-        // Use Rhino's built-in pipe command with fewer segments for lighter meshes
-        Brep[] pipes = Brep.CreatePipe(curve, radius, false, PipeCapMode.None, true, 0.01, 0.01);
+            // Format stats string
+            string stats = string.Format(
+                "Wireframe Statistics:\n" +
+                "Contours: {0}\n" +
+                "Pillars: {1}\n" +
+                "Total Length: {2:F2} units\n" +
+                "Self-supporting: {3:F1}%",
+                contours.Count,
+                pillars.Count,
+                totalLength,
+                supportedPercentage);
 
         if (pipes == null || pipes.Length == 0)
             return null;
@@ -447,16 +456,19 @@ public class MeshToWireframeComponent : GH_Component
             mp.JaggedSeams = false;
             mp.MaximumEdgeLength = radius * 8;  // Higher for fewer edges
 
-            Mesh[] meshes = Mesh.CreateFromBrep(pipe, mp);
-            if (meshes != null && meshes.Length > 0)
-            {
-                foreach (Mesh m in meshes)
+        public PointEqualityComparer(double tolerance)
                 {
-                    pipeMesh.Append(m);
-                }
+            _tolerance = tolerance;
             }
         }
 
-        return pipeMesh;
+        public int GetHashCode(Point3d obj)
+        {
+            // Round to reduce hash collisions while maintaining tolerance
+            double scale = 1.0 / _tolerance;
+            return (Math.Round(obj.X * scale) +
+                   Math.Round(obj.Y * scale) * 1000 +
+                   Math.Round(obj.Z * scale) * 1000000).GetHashCode();
+        }
     }
 }
