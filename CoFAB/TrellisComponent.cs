@@ -12,7 +12,6 @@ namespace CoFab
 {
     public class TrellisComponent : GH_Component
     {
-        // Process tracking
         private Process _process = null;
         private bool _isGenerating = false;
         private string _lastOutputDir = null;
@@ -39,7 +38,6 @@ namespace CoFab
             pManager.AddIntegerParameter("Seed", "S", "Random seed for generation", GH_ParamAccess.item, 0);
             pManager.AddTextParameter("Output Directory", "OutPath", "Directory to save generated files", GH_ParamAccess.item);
 
-            // Advanced parameters with defaults
             pManager.AddIntegerParameter("SS Steps", "SS", "Sampling steps for sparse structure generation", GH_ParamAccess.item, 12);
             pManager.AddNumberParameter("SS Guidance", "SG", "Guidance strength for sparse structure generation", GH_ParamAccess.item, 7.5);
             pManager.AddIntegerParameter("SLat Steps", "LS", "Sampling steps for structured latent generation", GH_ParamAccess.item, 12);
@@ -48,7 +46,6 @@ namespace CoFab
             pManager.AddTextParameter("Batch Script", "B", "Path to the TRELLIS batch script", GH_ParamAccess.item, @"C:\Users\DELL\TRELLIS\run_trellis.bat");
             pManager.AddBooleanParameter("Generate", "Run", "Set to true to start generation", GH_ParamAccess.item, false);
 
-            // Hide advanced parameters by default
             for (int i = 4; i < 9; i++)
             {
                 pManager[i].Optional = true;
@@ -67,7 +64,7 @@ namespace CoFab
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            // Get input parameters
+
             string mode = "image";
             string input = "";
             int seed = 0;
@@ -90,7 +87,6 @@ namespace CoFab
             DA.GetData(8, ref batchScriptPath);
             if (!DA.GetData(9, ref generate)) return;
 
-            // Validate inputs
             mode = mode.ToLower().Trim();
             if (mode != "image" && mode != "text")
             {
@@ -116,14 +112,13 @@ namespace CoFab
                 return;
             }
 
-            // Check if batch script path exists
+
             if (string.IsNullOrEmpty(batchScriptPath) || !File.Exists(batchScriptPath))
             {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, $"Batch script not found at: {batchScriptPath}");
                 return;
             }
 
-            // Create output directory if it doesn't exist
             try
             {
                 if (!Directory.Exists(outputDir))
@@ -142,13 +137,11 @@ namespace CoFab
             string plyPath = null;
             string previewPath = null;
 
-            // Check if we need to generate or if we already have results
             bool shouldGenerate = generate && !_isGenerating;
             bool resultsExist = Directory.Exists(outputDir) &&
                                File.Exists(Path.Combine(outputDir, "model.obj")) &&
                                outputDir == _lastOutputDir;
 
-            // If we're not generating and results exist, just load them
             if (!shouldGenerate && resultsExist)
             {
                 string objPath = Path.Combine(outputDir, "model.obj");
@@ -162,22 +155,20 @@ namespace CoFab
                     _statusMessage = "Loaded existing model";
                 }
             }
-            // Otherwise, if we need to generate, start the process
+
             else if (shouldGenerate)
             {
                 _isGenerating = true;
                 _lastOutputDir = outputDir;
                 _statusMessage = "Starting TRELLIS generation...";
-                _logOutput = ""; // Clear previous log
+                _logOutput = ""; 
 
-                // Start generation in a separate task
                 Task.Run(() =>
                 {
                     try
                     {
                         RunTrellisProcess(mode, input, outputDir, seed, ssSteps, ssGuidance, slatSteps, slatGuidance, batchScriptPath);
 
-                        // Check if the output files were created
                         string objPath = Path.Combine(outputDir, "model.obj");
                         if (File.Exists(objPath))
                         {
@@ -188,7 +179,6 @@ namespace CoFab
                             _statusMessage = "Generation process completed but output files not found";
                         }
 
-                        // Trigger solution update when done
                         Rhino.RhinoApp.InvokeOnUiThread(new Action(() =>
                         {
                             _isGenerating = false;
@@ -209,10 +199,9 @@ namespace CoFab
             }
             else if (_isGenerating)
             {
-                // Still generating
+                
             }
 
-            // Set outputs
             DA.SetData(0, resultMesh);
             DA.SetData(1, _statusMessage);
             DA.SetData(2, _logOutput);
@@ -246,10 +235,10 @@ namespace CoFab
             {
                 FileName = batchScriptPath,
                 Arguments = arguments,
-                UseShellExecute = false,         // Capture output
-                CreateNoWindow = false,         // Show the window
-                RedirectStandardOutput = true,   // Capture output
-                RedirectStandardError = true,    // Capture errors
+                UseShellExecute = false,       
+                CreateNoWindow = false,        
+                RedirectStandardOutput = true,   
+                RedirectStandardError = true,    
                 WorkingDirectory = Path.GetDirectoryName(batchScriptPath)
             };
 
@@ -258,14 +247,13 @@ namespace CoFab
                 process.StartInfo = psi;
                 _process = process;
 
-                // Set up output handling
                 StringBuilder output = new StringBuilder();
                 process.OutputDataReceived += (sender, e) =>
                 {
                     if (e.Data != null)
                     {
                         output.AppendLine(e.Data);
-                        // Update status message based on output
+
                         if (e.Data.Contains("SUCCESS:"))
                         {
                             _statusMessage = "Generation completed successfully";
@@ -293,18 +281,13 @@ namespace CoFab
                     }
                 };
 
-                // Start the process
                 process.Start();
                 process.BeginOutputReadLine();
                 process.BeginErrorReadLine();
-
-                // Wait for completion
                 process.WaitForExit();
 
-                // Store output for display
                 _logOutput = output.ToString();
 
-                // Check exit code
                 if (process.ExitCode != 0)
                 {
                     throw new Exception($"TRELLIS generation failed with exit code {process.ExitCode}. See log for details.");
@@ -318,12 +301,9 @@ namespace CoFab
         {
             try
             {
-                // Simple manual OBJ parser
                 Mesh mesh = new Mesh();
                 string[] lines = File.ReadAllLines(path);
                 List<Point3d> vertices = new List<Point3d>();
-
-                // First pass: collect all vertices
                 foreach (string line in lines)
                 {
                     if (line.StartsWith("v "))
@@ -342,23 +322,20 @@ namespace CoFab
                     }
                 }
 
-                // Add vertices to mesh
                 foreach (Point3d v in vertices)
                 {
                     mesh.Vertices.Add(v);
                 }
 
-                // Second pass: collect all faces
                 foreach (string line in lines)
                 {
                     if (line.StartsWith("f "))
                     {
                         string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (parts.Length >= 4) // At least a triangle
+                        if (parts.Length >= 4)
                         {
                             try
                             {
-                                // Extract vertex indices, ignoring any texture/normal info
                                 int[] indices = new int[parts.Length - 1];
                                 for (int i = 1; i < parts.Length; i++)
                                 {
@@ -366,11 +343,11 @@ namespace CoFab
                                     int idx;
                                     if (int.TryParse(indexPart, out idx))
                                     {
-                                        indices[i - 1] = idx - 1; // OBJ indices are 1-based
+                                        indices[i - 1] = idx - 1; 
                                     }
                                 }
 
-                                // Validate indices
+
                                 bool validIndices = true;
                                 foreach (int idx in indices)
                                 {
@@ -383,7 +360,6 @@ namespace CoFab
 
                                 if (!validIndices) continue;
 
-                                // Add face - handle both triangles and quads
                                 if (indices.Length == 3)
                                 {
                                     mesh.Faces.AddFace(indices[0], indices[1], indices[2]);
@@ -394,7 +370,6 @@ namespace CoFab
                                 }
                                 else if (indices.Length > 4)
                                 {
-                                    // Triangulate n-gons
                                     for (int i = 1; i < indices.Length - 1; i++)
                                     {
                                         mesh.Faces.AddFace(indices[0], indices[i], indices[i + 1]);
@@ -403,7 +378,6 @@ namespace CoFab
                             }
                             catch (Exception ex)
                             {
-                                // Log but continue with other faces
                                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning,
                                     $"Error parsing face: {line}. {ex.Message}");
                                 continue;
@@ -412,19 +386,12 @@ namespace CoFab
                     }
                 }
 
-                // Validate and clean up the mesh
                 if (mesh.Vertices.Count > 0 && mesh.Faces.Count > 0)
                 {
                     mesh.Normals.ComputeNormals();
                     mesh.Compact();
-
-                    // Apply transformations
-                    // 1. First, rotate 90 degrees around X axis to match Rhino's coordinate system (existing)
                     mesh.Rotate(Math.PI / 2, Vector3d.XAxis, Point3d.Origin);
-
-                    // 2. Scale the mesh by a factor of 80
                     EnlargeMesh(mesh, 50.0);
-
                     return mesh;
                 }
                 else
@@ -441,22 +408,15 @@ namespace CoFab
             }
         }
 
-      
-
-        // Function 2: Enlarge the mesh by a factor
         private void EnlargeMesh(Mesh mesh, double scaleFactor)
         {
             if (mesh == null || mesh.Vertices.Count == 0)
                 return;
 
-            // Calculate the center of the mesh (for scaling around its center)
             BoundingBox bbox = mesh.GetBoundingBox(false);
             Point3d center = bbox.Center;
 
-            // Create a scaling transformation
             Transform scaling = Transform.Scale(center, scaleFactor);
-
-            // Apply the transformation to the mesh
             mesh.Transform(scaling);
         }
 
@@ -472,7 +432,7 @@ namespace CoFab
                 }
                 catch
                 {
-                    // Ignore errors during process kill
+
                 }
             }
         }

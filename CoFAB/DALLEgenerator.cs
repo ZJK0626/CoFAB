@@ -27,25 +27,17 @@ namespace CoFab
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            // Natural Language Prompts
             pManager.AddTextParameter("Prompt", "Prompt", "Text prompt for image generation", GH_ParamAccess.item);
-            // OpenAI API Key
             pManager.AddTextParameter("API Key", "Key", "OpenAI API Key", GH_ParamAccess.item);
-            // Image Size: 1024x1024 / 1024x1792 / 1792x1024
             pManager.AddTextParameter("Size", "Size", "Image Size（DALL·E 3 only support 1024x1024, 1024x1792, 1792x1024）", GH_ParamAccess.item, "1024x1024");
-            // quality：standard / hd
-            pManager.AddTextParameter("Quality", "Quality", "图像质量（'standard'或'hd'，默认'standard'）", GH_ParamAccess.item, "standard");
-            // style：vivid / natural
+            pManager.AddTextParameter("Quality", "Quality", "Image Quality（'standard'or 'hd'，default 'standard'）", GH_ParamAccess.item, "standard");
             pManager.AddTextParameter("Style", "Style", "Image style（'vivid'or 'natural'，default 'vivid'）", GH_ParamAccess.item, "vivid");
-            // Running Switch: Switch to True to call the API
             pManager.AddBooleanParameter("Run", "Run", "Switch of the plugin", GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            // Temporary image path
             pManager.AddTextParameter("Image Path", "Path", "The temporary storage path of the generated image（PNG）", GH_ParamAccess.item);
-            // Real-time status message
             pManager.AddTextParameter("Status", "Status", "The running status", GH_ParamAccess.item);
         }
 
@@ -65,7 +57,6 @@ namespace CoFab
             if (!DA.GetData(4, ref style)) return;
             if (!DA.GetData(5, ref run)) return;
 
-            // 当 Run = false 时，停止执行并清空
             if (!run)
             {
                 apiTask = null;
@@ -76,7 +67,6 @@ namespace CoFab
                 return;
             }
 
-            // 当任务尚未创建，则创建一个新的异步任务
             if (apiTask == null)
             {
                 statusMessage = "Starting API call...";
@@ -84,7 +74,6 @@ namespace CoFab
                 Rhino.RhinoApp.Idle += RhinoApp_Idle;
             }
 
-            // 如果任务已经完成，则处理结果
             if (apiTask.IsCompleted)
             {
                 if (apiTask.Exception != null)
@@ -104,28 +93,24 @@ namespace CoFab
                     {
                         JObject jsonObj = JObject.Parse(currentResult);
 
-                        // 若返回结果中带有 error 字段，说明 API 报错
                         if (jsonObj["error"] != null)
                         {
                             statusMessage = "API returned error: " + jsonObj["error"].ToString();
                         }
                         else
                         {
-                            // 从 data 数组中获取返回的图片数据（base64 编码）
                             JArray dataArray = (JArray)jsonObj["data"];
                             if (dataArray != null && dataArray.Count > 0)
                             {
-                                // DALL·E 3 API 中，response_format = "b64_json" 时，图像数据在 b64_json 字段
+
                                 string base64Image = dataArray[0]["b64_json"]?.ToString();
                                 if (!string.IsNullOrEmpty(base64Image))
                                 {
                                     byte[] imageBytes = Convert.FromBase64String(base64Image);
-                                    // 用 Bitmap 读取到内存，然后保存为 .png 文件
                                     using (MemoryStream ms = new MemoryStream(imageBytes))
                                     {
                                         using (Bitmap resultImage = new Bitmap(ms))
                                         {
-                                            // 在系统临时目录中存储，用 Guid 保证文件名唯一
                                             imagePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".png");
                                             resultImage.Save(imagePath, ImageFormat.Png);
                                         }
@@ -151,46 +136,35 @@ namespace CoFab
                 {
                     statusMessage = "No result returned from API.";
                 }
-
-                // 输出结果
                 DA.SetData(0, imagePath);
                 DA.SetData(1, statusMessage);
 
-                // 解除 Idle 事件绑定
                 Rhino.RhinoApp.Idle -= RhinoApp_Idle;
                 apiTask = null;
             }
             else
             {
-                // 若任务未完成，依然在运行中
                 statusMessage = "API call in progress...";
                 DA.SetData(0, "");
                 DA.SetData(1, statusMessage);
             }
         }
 
-        // 利用 Rhino 的 Idle 事件周期性刷新组件，实现实时状态更新
         private void RhinoApp_Idle(object sender, EventArgs e)
         {
             ExpireSolution(true);
         }
 
-        /// <summary>
-        /// 调用 OpenAI DALL·E 3 API 的异步方法，强制 n=1，并可设置 size、quality、style 等最新参数。
-        /// </summary>
+
         private async Task<string> CallDalle3ApiAsync(string prompt, string apiKey, string size, string quality, string style)
         {
 
             string endpoint = "https://api.openai.com/v1/images/generations";
 
-            // 如果使用 DALL·E 3，则必须 size ∈ { 1024x1024, 1024x1792, 1792x1024 }，n=1
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.Add("Authorization", "Bearer " + apiKey);
 
-                // 组装请求体
-                // 参考文档：需指定 "model": "dall-e-3"，支持 "size"、"quality"、"style"。
-                // n 只能是 1
                 var payload = new
                 {
                     model = "dall-e-3",
@@ -220,8 +194,6 @@ namespace CoFab
                 }
             }
         }
-
-        // 如果你想为组件设置自定义图标，可以在此返回一个 Bitmap
         protected override Bitmap Icon => null;
 
         public override Guid ComponentGuid => new Guid("5E71D2A9-690F-4B4F-9116-94D31B3310E0");
