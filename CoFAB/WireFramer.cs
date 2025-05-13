@@ -71,7 +71,6 @@ public class MeshToWireframeComponent : GH_Component
         // Generate the scalar field for contours
         Dictionary<int, double> scalarField = GenerateScalarField(inputMesh);
 
-        // Extract contours using the scalar field
         List<Curve> contours = ExtractContours(inputMesh, scalarField, contourSpacing);
 
         // Create pillar connections between contours
