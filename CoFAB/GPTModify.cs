@@ -14,11 +14,8 @@ namespace CoFab
 {
     public class CoFabModifier : GH_Component
     {
-        // 异步任务存储变量
         private Task<string> apiTask = null;
-        // 存储 API 返回的 JSON 字符串
         private string currentResult = null;
-        // 状态信息用于实时反馈
         private string statusMessage = "";
 
         public CoFabModifier()
@@ -32,21 +29,15 @@ namespace CoFab
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            // 输入几何体（Brep）
             pManager.AddBrepParameter("Input Brep", "B", "Brep to transform", GH_ParamAccess.item);
-            // 自然语言指令，例如“请将几何体沿 X 方向移动 10 个单位，并阵列为 2 行 3 列”
             pManager.AddTextParameter("Command Prompt", "Cmd", "Natural language transform command", GH_ParamAccess.item);
-            // OpenAI API Key
             pManager.AddTextParameter("API Key", "Key", "OpenAI API Key", GH_ParamAccess.item);
-            // 执行开关：为 true 时启动 API 调用
             pManager.AddBooleanParameter("Run", "Run", "Set true to execute the API call", GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            // 输出变换后的几何体，可能为多个 Brep
             pManager.AddBrepParameter("Transformed Breps", "TB", "Resulting geometry after transformation", GH_ParamAccess.list);
-            // 输出实时状态信息
             pManager.AddTextParameter("Status", "Status", "Execution status", GH_ParamAccess.item);
         }
 
@@ -103,7 +94,6 @@ namespace CoFab
                         }
                         else
                         {
-                            // 从 choices 数组中获取 message.content
                             JArray choices = (JArray)jsonObj["choices"];
                             string content = "";
                             if (choices != null && choices.Count > 0)
@@ -160,15 +150,11 @@ namespace CoFab
             }
         }
 
-        // 利用 Rhino 的 Idle 事件周期性刷新组件，实现实时状态更新
         private void RhinoApp_Idle(object sender, EventArgs e)
         {
             ExpireSolution(true);
         }
 
-        /// <summary>
-        /// 异步调用 OpenAI API，将用户的自然语言变换指令转换为 JSON 格式的变换参数
-        /// </summary>
         private async Task<string> CallOpenAIApiAsync(string command, string apiKey)
         {
             string endpoint = "https://api.openai.com/v1/chat/completions";
@@ -201,24 +187,19 @@ namespace CoFab
             }
         }
 
-        /// <summary>
-        /// 根据解析出来的变换指令在 RhinoCommon 中对 Brep 执行变换操作
-        /// </summary>
+
         private List<Brep> ExecuteTransforms(Brep inputBrep, TransformInstruction instruction)
         {
             var results = new List<Brep>();
 
             if (instruction == null)
             {
-                // 如果解析失败，则返回原始 Brep
                 results.Add(inputBrep.DuplicateBrep());
                 return results;
             }
 
-            // 复制初始对象进行操作
             Brep baseBrep = inputBrep.DuplicateBrep();
 
-            // 移动操作
             if (instruction.Operation == "move")
             {
                 Vector3d moveVec = new Vector3d(instruction.X, instruction.Y, instruction.Z);
@@ -226,7 +207,6 @@ namespace CoFab
                 baseBrep.Transform(moveXform);
             }
 
-            // 缩放操作
             if (instruction.Operation == "scale")
             {
                 double scaleFactor = instruction.ScaleFactor;
@@ -235,7 +215,6 @@ namespace CoFab
                 baseBrep.Transform(scaleXform);
             }
 
-            // 旋转操作
             if (instruction.Operation == "rotate")
             {
                 double angleRadians = Math.PI * instruction.Angle / 180.0;
@@ -245,7 +224,6 @@ namespace CoFab
                 baseBrep.Transform(rotXform);
             }
 
-            // 阵列操作
             if (instruction.Operation == "array")
             {
                 int rows = instruction.ArrayRows;
@@ -275,25 +253,14 @@ namespace CoFab
         public override Guid ComponentGuid => new Guid("BDAF3D02-48F9-49B3-8946-FC822D9C7156");
     }
 
-    /// <summary>
-    /// 用于序列化 OpenAI 返回的变换指令 JSON 数据
-    /// </summary>
     public class TransformInstruction
     {
         public string Operation { get; set; }
-
-        // 移动参数
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
-
-        // 缩放参数
         public double ScaleFactor { get; set; }
-
-        // 旋转参数（角度，单位为度）
         public double Angle { get; set; }
-
-        // 阵列参数
         public int ArrayRows { get; set; }
         public int ArrayCols { get; set; }
         public double StepX { get; set; }

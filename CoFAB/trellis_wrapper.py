@@ -20,15 +20,12 @@ os.environ['SPCONV_ALGO'] = 'native'
 # os.environ['ATTN_BACKEND'] = 'xformers'
 
 def main():
-    # Setup detailed error reporting
     try:
-        # Print environment info for debugging
         print("Python executable:", sys.executable)
         print("Python version:", sys.version)
         print("Current working directory:", os.getcwd())
         print("PYTHONPATH:", sys.path)
         
-        # Parse command line arguments
         parser = argparse.ArgumentParser(description='Generate 3D model using TRELLIS')
         parser.add_argument('--mode', type=str, choices=['image', 'text'], default='image',
                             help='Mode: "image" for image-to-3D or "text" for text-to-3D')
@@ -49,10 +46,8 @@ def main():
         
         args = parser.parse_args()
         
-        # Create output directory if it doesn't exist
         os.makedirs(args.output_dir, exist_ok=True)
         
-        # IMPORTANT: Try to import TRELLIS modules, with detailed error reporting
         try:
             print("Attempting to import TRELLIS modules...")
             import torch
@@ -75,12 +70,10 @@ def main():
             print("4. Try installing TRELLIS with 'pip install git+https://github.com/sdbds/TRELLIS-for-windows.git'")
             sys.exit(1)
         
-        # Continue with TRELLIS generation
         if args.mode == "image":
             pipeline = TrellisImageTo3DPipeline.from_pretrained("JeffreyXiang/TRELLIS-image-large")
             pipeline.cuda()
             
-            # Load the input image
             if not os.path.exists(args.input):
                 print(f"ERROR: Input image not found: {args.input}")
                 sys.exit(1)
@@ -88,7 +81,6 @@ def main():
             from PIL import Image
             image = Image.open(args.input)
             
-            # Run the pipeline
             outputs = pipeline.run(
                 image,
                 seed=args.seed,
@@ -101,11 +93,10 @@ def main():
                     "cfg_strength": args.slat_guidance,
                 },
             )
-        else:  # text mode
+        else:
             print("ERROR: Text-to-3D mode is not yet implemented")
             sys.exit(1)
-        
-        # Save the outputs
+
         import imageio
         import trimesh
         import numpy as np
@@ -115,9 +106,8 @@ def main():
         glb_path = os.path.join(args.output_dir, "model.glb")
         preview_path = os.path.join(args.output_dir, "preview.mp4")
         
-        # Save mesh as OBJ using trimesh
         try:
-            # First convert to GLB with texture
+            
             glb = postprocessing_utils.to_glb(
                 outputs['gaussian'][0],
                 outputs['mesh'][0],
@@ -126,12 +116,10 @@ def main():
             )
             glb.export(glb_path)
             
-            # Export OBJ by creating a trimesh from vertices and faces
             mesh = outputs['mesh'][0]
             vertices = mesh.vertices.cpu().numpy()
             faces = mesh.faces.cpu().numpy()
             
-            # Create a trimesh object
             mesh_obj = trimesh.Trimesh(vertices=vertices, faces=faces)
             mesh_obj.export(obj_path)
             
@@ -145,7 +133,6 @@ def main():
         traceback.print_exc()
         sys.exit(1)
     
-    # Clean up
     import torch
     torch.cuda.empty_cache()
     

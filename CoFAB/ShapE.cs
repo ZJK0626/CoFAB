@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Diagnostics;  // for Process
-using System.IO;          // for file IO
+using System.Diagnostics; 
+using System.IO;  
 using Grasshopper;
 using Grasshopper.Kernel;
-using Rhino.Geometry;     // for Mesh geometry
+using Rhino.Geometry;  
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -25,30 +25,24 @@ public class ShapEComponent : GH_Component
         pManager.AddNumberParameter("GuidanceScale", "G", "Guidance scale factor", GH_ParamAccess.item, 12.0);
         pManager.AddIntegerParameter("KarrasSteps", "Steps", "Number of sampling steps (Calculation_steps)", GH_ParamAccess.item, 64);
         pManager.AddBooleanParameter("Run", "Run", "Set to true to run generation", GH_ParamAccess.item, false);
-
-        // 是否执行 QuadReMesh
         pManager.AddBooleanParameter("Remesh", "Remesh", "If true, run QuadReMesh after generation", GH_ParamAccess.item, true);
-
-        // 可选：目标四边形数量
         pManager.AddIntegerParameter("TargetQuads", "TQ", "Approximate target quad count", GH_ParamAccess.item, 2000);
     }
 
     protected override void RegisterOutputParams(GH_OutputParamManager pManager)
     {
         pManager.AddMeshParameter("Mesh", "M", "Generated mesh from Shap-E", GH_ParamAccess.item);
-        // 如果需要输出更多信息，可加参数
         pManager.AddTextParameter("ConsoleLog", "Log", "Console output from the Python script", GH_ParamAccess.item);
     }
 
     protected override void SolveInstance(IGH_DataAccess DA)
     {
-        // 1. 获取输入
         string prompt = "";
         double guidanceScale = 12.0;
         int steps = 64;
         bool runGeneration = false;
-        bool doRemesh = true;        // <- 新增
-        int targetQuadCount = 2000;   // <- 新增
+        bool doRemesh = true;
+        int targetQuadCount = 2000;
 
         if (!DA.GetData(0, ref prompt)) return;
         if (!DA.GetData(1, ref guidanceScale)) return;
@@ -57,26 +51,22 @@ public class ShapEComponent : GH_Component
         if (!DA.GetData(4, ref doRemesh)) return;
         if (!DA.GetData(5, ref targetQuadCount)) return;
 
-        // 如果没勾选 Run，就不执行
         if (!runGeneration) return;
 
-        // 2. 调用外部 Python 脚本
         string pythonExe = @"C:\Users\DELL\anaconda3\envs\shap_e_env\python.exe";
         string scriptPath = @"C:\Users\DELL\shap-e\shap_e_generate.py";
         string tempDir = Path.GetTempPath();
         string objFile = Path.Combine(tempDir, $"shap_e_{Guid.NewGuid()}.obj");
 
-        // 使用 ShellExecute = true，将在单独的终端窗口里运行脚本
-        // 无法再重定向标准输出/错误流
+
         ProcessStartInfo psi = new ProcessStartInfo()
         {
             FileName = pythonExe,
             Arguments = $"\"{scriptPath}\" \"{prompt}\" {guidanceScale} {steps} \"{objFile}\"",
-            UseShellExecute = true,         // 必须为 true 才能弹出独立窗口
-            CreateNoWindow = false,         // false 表示让 Python 窗口可见
+            UseShellExecute = true,
+            CreateNoWindow = false,
         };
 
-        // 可选：指定工作目录，避免相对路径问题
         psi.WorkingDirectory = System.IO.Path.GetDirectoryName(scriptPath);
 
         Process p = new Process();
@@ -85,7 +75,6 @@ public class ShapEComponent : GH_Component
         try
         {
             p.Start();
-            // 等待脚本执行完毕，阻塞当前线程
             p.WaitForExit();
 
             if (p.ExitCode != 0)
@@ -101,7 +90,6 @@ public class ShapEComponent : GH_Component
             return;
         }
 
-        // 3. 解析 OBJ → Rhino Mesh
         Mesh ghMesh = new Mesh();
         if (File.Exists(objFile))
         {
@@ -114,18 +102,13 @@ public class ShapEComponent : GH_Component
 
         if (doRemesh)
         {
-            // 配置参数
             var quadParams = new Rhino.Geometry.QuadRemeshParameters();
             quadParams.TargetQuadCount = targetQuadCount;
-            // 其他可选配置：
-            // quadParams.AdaptiveSize = 50; // 介于 0-100, 控制自适应多边形大小
-            // quadParams.GuideCurveInfluence = 0;  // 如果有引导线, 0~100
-            // quadParams.DetectHardEdges = true;   // 是否检测硬边
 
             Mesh remeshed = ghMesh.QuadRemesh(quadParams);
             if (remeshed != null)
             {
-                ghMesh = remeshed; // 用重建后的网格覆盖
+                ghMesh = remeshed;
             }
             else
             {
@@ -133,41 +116,31 @@ public class ShapEComponent : GH_Component
             }
         }
 
-
-        // 对网格做自动缩放，让最大维度 = 100
         ScaleMeshToMaxDimension(ref ghMesh, 100.0);
 
-        // 4. 输出：网格
         DA.SetData(0, ghMesh);
     }
 
     private void ScaleMeshToMaxDimension(ref Mesh mesh, double targetSize)
     {
-        // 获取网格的包围框
         var bbox = mesh.GetBoundingBox(false);
-        // 计算 X/Y/Z 三个方向的长度
         double sizeX = bbox.Max.X - bbox.Min.X;
         double sizeY = bbox.Max.Y - bbox.Min.Y;
         double sizeZ = bbox.Max.Z - bbox.Min.Z;
-        // 找到最大的一个维度
         double maxDim = Math.Max(sizeX, Math.Max(sizeY, sizeZ));
 
-        // 若 maxDim 太小，避免除零
         if (maxDim < 1e-6)
-            return; // 网格可能是个空对象或极小，不缩放
+            return; 
 
-        // 计算缩放比例
         double scaleFactor = targetSize / maxDim;
-        // 以包围框中心点为基准缩放（也可以用 bbox.Min 或者世界原点等）
+
         var center = bbox.Center;
         var xform = Rhino.Geometry.Transform.Scale(center, scaleFactor);
 
-        // 对网格应用变换
+
         mesh.Transform(xform);
     }
 
-    // 一个非常简陋的 OBJ 解析示例，只解析 v/f 三角面
-    // 如果 OBJ 面是四边形/其它复杂格式，需要做更多逻辑
     private Mesh LoadObjAsMesh(string path)
     {
         Mesh m = new Mesh();
@@ -187,7 +160,7 @@ public class ShapEComponent : GH_Component
                 }
             }
         }
-        // 先把所有顶点加到网格
+
         foreach (var v in verts)
             m.Vertices.Add(v);
 
@@ -195,22 +168,19 @@ public class ShapEComponent : GH_Component
         {
             if (line.StartsWith("f "))
             {
-                // 解析面信息
-                // e.g. "f 1 2 3" or "f 1/tex 2/tex 3/tex"
                 var parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length >= 4)
                 {
-                    // 把每个 parts[i] 仅取"/"前面那段
                     try
                     {
-                        int v1 = int.Parse(parts[1].Split('/')[0]) - 1; // OBJ 索引从1开始
+                        int v1 = int.Parse(parts[1].Split('/')[0]) - 1;
                         int v2 = int.Parse(parts[2].Split('/')[0]) - 1;
                         int v3 = int.Parse(parts[3].Split('/')[0]) - 1;
                         m.Faces.AddFace(v1, v2, v3);
                     }
                     catch (Exception)
                     {
-                        // 解析失败就忽略
+
                     }
                 }
             }

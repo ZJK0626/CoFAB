@@ -1,4 +1,3 @@
-# shap_e_generate.py
 import sys, os
 import torch
 from shap_e.diffusion.sample import sample_latents
@@ -7,7 +6,6 @@ from shap_e.models.download import load_model, load_config
 from shap_e.util.notebooks import decode_latent_mesh
 
 def main():
-    # 解析参数
     if len(sys.argv) < 5:
         print("Usage: python shap_e_generate.py <prompt> <guidance_scale> <steps> <output_obj>")
         sys.exit(1)

@@ -4,19 +4,16 @@ using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json;          // 用于 JSON 序列化
-using Newtonsoft.Json.Linq;     // 用于 JSON 解析
-using System.Text.RegularExpressions; // 用于正则表达式解析
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq; 
+using System.Text.RegularExpressions; 
 
 namespace CoFab
 {
     public class CoFab : GH_Component
     {
-        // 异步任务存储变量
         private Task<string> apiTask = null;
-        // 存储 API 返回的 JSON 字符串
         private string currentResult = null;
-        // 状态信息用于实时反馈
         private string statusMessage = "";
 
         public CoFab()
@@ -30,25 +27,19 @@ namespace CoFab
 
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            // 英文指令，例如 "I want a box with 10 cm x 10cm x 10cm"
             pManager.AddTextParameter("Command", "Cmd", "Natural language command in English", GH_ParamAccess.item);
-            // OpenAI API Key
             pManager.AddTextParameter("API Key", "Key", "OpenAI API Key", GH_ParamAccess.item);
-            // Run switch: set true to start API call
             pManager.AddBooleanParameter("Run", "Run", "Set true to execute the API call", GH_ParamAccess.item, false);
         }
 
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            // 输出生成的几何体（Brep）
             pManager.AddBrepParameter("Geometry", "Geo", "Generated geometry", GH_ParamAccess.item);
-            // 输出实时状态信息
             pManager.AddTextParameter("Status", "Status", "Execution status", GH_ParamAccess.item);
         }
 
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            // 获取输入参数
             string command = "";
             string apiKey = "";
             bool run = false;
@@ -97,7 +88,6 @@ namespace CoFab
                         }
                         else
                         {
-                            // 从 choices 数组中获取 message.content
                             JArray choices = (JArray)jsonObj["choices"];
                             string content = "";
                             if (choices != null && choices.Count > 0)
@@ -112,7 +102,6 @@ namespace CoFab
                             }
                             else
                             {
-                                // 使用辅助函数识别形状
                                 string detectedShape = DetectShape(content);
                                 if (string.IsNullOrEmpty(detectedShape))
                                 {
@@ -189,7 +178,6 @@ namespace CoFab
                                     catch { }
                                     if (!parsedStructured)
                                     {
-                                        // 尝试匹配 "dimensions of 10 cm x 10 cm x 10 cm" 格式
                                         Match dimsMatch = Regex.Match(content, @"dimensions\s*of\s*(\d+(\.\d+)?)\s*cm\s*[x×]\s*(\d+(\.\d+)?)\s*cm\s*[x×]\s*(\d+(\.\d+)?)\s*cm", RegexOptions.IgnoreCase);
                                         if (dimsMatch.Success)
                                         {
@@ -202,7 +190,6 @@ namespace CoFab
                                             }
                                             else
                                             {
-                                                // 如果三个尺寸不相等，则视为 cuboid
                                                 double halfL = d1 / 2.0;
                                                 double halfW = d2 / 2.0;
                                                 double halfH = d3 / 2.0;
@@ -388,16 +375,11 @@ namespace CoFab
             }
         }
 
-        // 利用 Rhino 的 Idle 事件周期性刷新组件，实现实时状态更新
         private void RhinoApp_Idle(object sender, EventArgs e)
         {
             ExpireSolution(true);
         }
 
-        /// <summary>
-        /// 使用 HttpClient 异步调用 OpenAI API，并采用 Newtonsoft.Json 序列化请求数据。
-        /// 系统提示明确要求返回仅包含必要参数的结构化 JSON 对象，用于 Grasshopper 模型生成.
-        /// </summary>
         private async Task<string> CallOpenAIApiAsync(string command, string apiKey)
         {
             string endpoint = "https://api.openai.com/v1/chat/completions";
@@ -406,7 +388,7 @@ namespace CoFab
                 client.DefaultRequestHeaders.Add("Authorization", "Bearer " + apiKey);
                 var payload = new
                 {
-                    model = "gpt-4", // or "gpt-4"
+                    model = "gpt-4",
                     messages = new[] {
                         new { role = "system", content = "You are a helpful assistant specialized in Grasshopper geometry generation. The user will provide a natural language command to generate a model in Grasshopper. Please analyze the command and return only a structured JSON object with the necessary parameters for the requested model, using the following formats: For a pyramid, return: { \"shape\": \"pyramid\", \"height\": <number>, \"baseSide\": <number> }. For a cube, return: { \"shape\": \"cube\", \"side\": <number> }. For a cylinder, return: { \"shape\": \"cylinder\", \"radius\": <number>, \"height\": <number> }. For a cone, return: { \"shape\": \"cone\", \"baseRadius\": <number>, \"height\": <number> }. For a sphere, return: { \"shape\": \"sphere\", \"radius\": <number> }. For a cuboid, return: { \"shape\": \"cuboid\", \"length\": <number>, \"width\": <number>, \"height\": <number> }. Do not include any additional text, explanations, or formatting." },
                         new { role = "user", content = command }
@@ -430,9 +412,6 @@ namespace CoFab
             }
         }
 
-        /// <summary>
-        /// 基于关键词列表提取尺寸信息。返回数字（double）或 null。
-        /// </summary>
         private double? ExtractDimension(string content, string[] keywords)
         {
             foreach (var keyword in keywords)
@@ -449,9 +428,7 @@ namespace CoFab
             return null;
         }
 
-        /// <summary>
-        /// 根据输入文本模糊识别几何体类型，支持常见同义词和拼写错误
-        /// </summary>
+
         private string DetectShape(string text)
         {
             string lower = text.ToLower();
@@ -470,7 +447,7 @@ namespace CoFab
             return null;
         }
 
-        protected override System.Drawing.Bitmap Icon => null; // You may add a custom icon here
+        protected override System.Drawing.Bitmap Icon => null; 
 
         public override Guid ComponentGuid => new Guid("F5520274-700E-48EC-804F-F3CAE03E0777");
 
